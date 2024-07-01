@@ -5,32 +5,32 @@ from rec_op_lem_prices.optimization.module.StageOneMILP import StageOneMILP
 from rec_op_lem_prices.optimization.module.StageTwoMILPBilateral import StageTwoMILPBilateral
 from rec_op_lem_prices.optimization.module.StageTwoMILPPool import StageTwoMILPPool
 from rec_op_lem_prices.custom_types.individual_cost_types import (
-	BackpackIndCostDict,
-	OutputsIndCostDict
+    BackpackIndCostDict,
+    OutputsIndCostDict
 )
 from rec_op_lem_prices.custom_types.stage_one_milp_types import (
-	BackpackS1Dict,
-	OutputsS1Dict
+    BackpackS1Dict,
+    OutputsS1Dict
 )
 from rec_op_lem_prices.custom_types.stage_two_milp_bilateral_types import (
-	CollectivePostBackpackS2BilateralDict,
-	CollectivePostOutputsS2BilateralDict,
-	CollectivePreBackpackS2BilateralDict,
-	CollectivePreOutputsS2BilateralDict,
-	SinglePostBackpackS2BilateralDict,
-	SinglePreBackpackS2BilateralDict,
-	SinglePostOutputsS2BilateralDict,
-	SinglePreOutputsS2BilateralDict
+    CollectivePostBackpackS2BilateralDict,
+    CollectivePostOutputsS2BilateralDict,
+    CollectivePreBackpackS2BilateralDict,
+    CollectivePreOutputsS2BilateralDict,
+    SinglePostBackpackS2BilateralDict,
+    SinglePreBackpackS2BilateralDict,
+    SinglePostOutputsS2BilateralDict,
+    SinglePreOutputsS2BilateralDict
 )
 from rec_op_lem_prices.custom_types.stage_two_milp_pool_types import (
-	CollectivePostBackpackS2PoolDict,
-	CollectivePostOutputsS2PoolDict,
-	CollectivePreBackpackS2PoolDict,
-	CollectivePreOutputsS2PoolDict,
-	SinglePostBackpackS2PoolDict,
-	SinglePostOutputsS2PoolDict,
-	SinglePreBackpackS2PoolDict,
-	SinglePreOutputsS2PoolDict
+    CollectivePostBackpackS2PoolDict,
+    CollectivePostOutputsS2PoolDict,
+    CollectivePreBackpackS2PoolDict,
+    CollectivePreOutputsS2PoolDict,
+    SinglePostBackpackS2PoolDict,
+    SinglePostOutputsS2PoolDict,
+    SinglePreBackpackS2PoolDict,
+    SinglePreOutputsS2PoolDict
 )
 from joblib import Parallel, delayed
 from loguru import logger
@@ -38,8 +38,8 @@ from loguru import logger
 
 # --- FOR PRE-DELIVERY TIMEFRAME ---------------------------------------------------------------------------------------
 def run_pre_individual_milp(backpack: BackpackS1Dict) \
-		-> OutputsS1Dict:
-	"""
+        -> OutputsS1Dict:
+    """
 	Use this function to compute an individual MILP (stage 1) for a given Meter, community member, microgrid or
 	hybrid park.
 	This function is specific for a pre-delivery timeframe, providing the schedules for controllable assets,
@@ -103,20 +103,20 @@ def run_pre_individual_milp(backpack: BackpackS1Dict) \
 		'soc_bat': dict of arrays with the evolution of the SoC of each storage asset, in %
 	}
 	"""
-	logger.info(f'Running a pre-delivery individual MILP ({backpack["id"]})...')
+    logger.info(f'Running a pre-delivery individual MILP ({backpack["id"]})...')
 
-	milp = StageOneMILP(backpack)
-	milp.solve_milp()
-	results = milp.generate_outputs()
+    milp = StageOneMILP(backpack)
+    milp.solve_milp()
+    results = milp.generate_outputs()
 
-	logger.info(f'Running a pre-delivery individual MILP ({backpack["id"]})... DONE!')
+    logger.info(f'Running a pre-delivery individual MILP ({backpack["id"]})... DONE!')
 
-	return results
+    return results
 
 
 def run_pre_single_stage_collective_pool_milp(backpack: SinglePreBackpackS2PoolDict) \
-		-> SinglePreOutputsS2PoolDict:
-	"""
+        -> SinglePreOutputsS2PoolDict:
+    """
 	Use this function to compute a standalone collective MILP for a given renewable energy community (REC)
 	under a pool market structure.
 	This function is specific for a pre-delivery timeframe, providing the schedules for controllable assets,
@@ -202,25 +202,25 @@ def run_pre_single_stage_collective_pool_milp(backpack: SinglePreBackpackS2PoolD
 		'soc_bat': dict of arrays with the evolution of the SoC of each storage asset, in %
 	}
 	"""
-	logger.info('Running a pre-delivery standalone/second stage collective (pool) MILP...')
+    logger.info('Running a pre-delivery standalone/second stage collective (pool) MILP...')
 
-	# Set values for specific run
-	backpack['second_stage'] = False
-	for _, val in backpack['meters'].items():
-		val['c_ind'] = 0.0
+    # Set values for specific run
+    backpack['second_stage'] = False
+    for _, val in backpack['meters'].items():
+        val['c_ind'] = 0.0
 
-	milp = StageTwoMILPPool(backpack)
-	milp.solve_milp()
-	results = milp.generate_outputs()
+    milp = StageTwoMILPPool(backpack)
+    milp.solve_milp()
+    results = milp.generate_outputs()
 
-	logger.info('Running a pre-delivery standalone/second stage collective (pool) MILP... DONE!')
+    logger.info('Running a pre-delivery standalone/second stage collective (pool) MILP... DONE!')
 
-	return results
+    return results
 
 
 def run_pre_single_stage_collective_bilateral_milp(backpack: SinglePreBackpackS2BilateralDict) \
-		-> SinglePreOutputsS2BilateralDict:
-	"""
+        -> SinglePreOutputsS2BilateralDict:
+    """
 	Use this function to compute a standalone collective MILP for a given renewable energy community (REC),
 	under a p2p market structure, based on bilateral contracts.
 	This function is specific for a pre-delivery timeframe, providing the schedules for controllable assets,
@@ -309,25 +309,25 @@ def run_pre_single_stage_collective_bilateral_milp(backpack: SinglePreBackpackS2
 		'soc_bat': dict of arrays with the evolution of the SoC of each storage asset, in %
 	}
 	"""
-	logger.info('Running a pre-delivery standalone/second stage collective (bilateral) MILP...')
+    logger.info('Running a pre-delivery standalone/second stage collective (bilateral) MILP...')
 
-	# Set values for specific run
-	backpack['second_stage'] = False
-	for _, val in backpack['meters'].items():
-		val['c_ind'] = 0.0
+    # Set values for specific run
+    backpack['second_stage'] = False
+    for _, val in backpack['meters'].items():
+        val['c_ind'] = 0.0
 
-	milp = StageTwoMILPBilateral(backpack)
-	milp.solve_milp()
-	results = milp.generate_outputs()
+    milp = StageTwoMILPBilateral(backpack)
+    milp.solve_milp()
+    results = milp.generate_outputs()
 
-	logger.info('Running a pre-delivery standalone/second stage collective (bilateral) MILP... DONE!')
+    logger.info('Running a pre-delivery standalone/second stage collective (bilateral) MILP... DONE!')
 
-	return results
+    return results
 
 
 def run_pre_two_stage_collective_pool_milp(backpack: CollectivePreBackpackS2PoolDict, for_testing=False) \
-		-> CollectivePreOutputsS2PoolDict:
-	"""
+        -> CollectivePreOutputsS2PoolDict:
+    """
 	Use this function to compute the two-step collective MILP for a given renewable energy community (REC)
 	under a pool market structure.
 	This function is specific for a pre-delivery timeframe, providing the schedules for controllable assets,
@@ -343,86 +343,86 @@ def run_pre_two_stage_collective_pool_milp(backpack: CollectivePreBackpackS2Pool
 		"run_pre_single_stage_collective_pool_milp" and second, a list with the results from the individual
 		optimization stages, as provided in "run_pre_individual_milp".
 	"""
-	logger.info('Running a pre-delivery two-stage collective (pool) MILP...')
+    logger.info('Running a pre-delivery two-stage collective (pool) MILP...')
 
-	# Set values for specific run
-	backpack['second_stage'] = True
+    # Set values for specific run
+    backpack['second_stage'] = True
 
-	# Prepare the inputs for the individual optimization stages according to BackpackS1Dict
-	individual_backpacks = []
-	for meter_name, meter_data in backpack['meters'].items():
-		ind_bp = {
-			'btm_storage': meter_data['btm_storage'],
-			'delta_t': backpack['delta_t'],
-			'e_c': meter_data['e_c'],
-			'e_g': meter_data['e_g'],
-			'horizon': backpack['horizon'],
-			'id': meter_name,
-			'l_buy': meter_data['l_buy'],
-			'l_extra': backpack['l_extra'],
-			'l_market_buy': backpack['l_market_buy'],
-			'l_market_sell': backpack['l_market_sell'],
-			'l_sell': meter_data['l_sell'],
-			'max_p': meter_data['max_p']
-		}
-		individual_backpacks.append(ind_bp)
+    # Prepare the inputs for the individual optimization stages according to BackpackS1Dict
+    individual_backpacks = []
+    for meter_name, meter_data in backpack['meters'].items():
+        ind_bp = {
+            'btm_storage': meter_data['btm_storage'],
+            'delta_t': backpack['delta_t'],
+            'e_c': meter_data['e_c'],
+            'e_g': meter_data['e_g'],
+            'horizon': backpack['horizon'],
+            'id': meter_name,
+            'l_buy': meter_data['l_buy'],
+            'l_extra': backpack['l_extra'],
+            'l_market_buy': backpack['l_market_buy'],
+            'l_market_sell': backpack['l_market_sell'],
+            'l_sell': meter_data['l_sell'],
+            'max_p': meter_data['max_p']
+        }
+        individual_backpacks.append(ind_bp)
 
-	# Run in parallel the first stage of optimization for all Meters provided
-	partitions = mp.cpu_count() if not for_testing else 1
-	stage1_outputs = Parallel(n_jobs=partitions, backend='multiprocessing', max_nbytes=None)(
-		delayed(run_pre_individual_milp)(ind_backpack) for ind_backpack in individual_backpacks)
+    # Run in parallel the first stage of optimization for all Meters provided
+    partitions = mp.cpu_count() if not for_testing else 1
+    stage1_outputs = Parallel(n_jobs=partitions, backend='multiprocessing', max_nbytes=None)(
+        delayed(run_pre_individual_milp)(ind_backpack) for ind_backpack in individual_backpacks)
 
-	# Check if all individual stages were successfully run
-	missing_outputs = any(not output for output in stage1_outputs)
-	if missing_outputs:
-		error_msg = 'The solver has raised an unexpected error during stage 1. ' \
-		            'At least one of the individual optimization procedures were unsuccessful. ' \
-		            'Please try making another request, verifying all input data. ' \
-		            'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    # Check if all individual stages were successfully run
+    missing_outputs = any(not output for output in stage1_outputs)
+    if missing_outputs:
+        error_msg = 'The solver has raised an unexpected error during stage 1. ' \
+                    'At least one of the individual optimization procedures were unsuccessful. ' \
+                    'Please try making another request, verifying all input data. ' \
+                    'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	not_optimal = {output['meter_id']: output['milp_status']
-	               for output in stage1_outputs if output['milp_status'] != 'Optimal'}
-	if not_optimal:
-		error_msg = f'The following individual optimization procedures were not optimally solved: {not_optimal}. ' \
-		            f'Please try making another request, verifying all input data. ' \
-		            f'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    not_optimal = {output['meter_id']: output['milp_status']
+                   for output in stage1_outputs if output['milp_status'] != 'Optimal'}
+    if not_optimal:
+        error_msg = f'The following individual optimization procedures were not optimally solved: {not_optimal}. ' \
+                    f'Please try making another request, verifying all input data. ' \
+                    f'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	# Add the individual costs found to the backpack for the collective optimization stage
-	for output in stage1_outputs:
-		meter_id = output['meter_id']
-		c_ind = output['c_ind']
-		backpack['meters'][meter_id]['c_ind'] = c_ind
+    # Add the individual costs found to the backpack for the collective optimization stage
+    for output in stage1_outputs:
+        meter_id = output['meter_id']
+        c_ind = output['c_ind']
+        backpack['meters'][meter_id]['c_ind'] = c_ind
 
-	# Run the second stage of optimization
-	milp = StageTwoMILPPool(backpack)
-	milp.solve_milp()
-	stage2_outputs = milp.generate_outputs()
+    # Run the second stage of optimization
+    milp = StageTwoMILPPool(backpack)
+    milp.solve_milp()
+    stage2_outputs = milp.generate_outputs()
 
-	# Check if the second stage was successfully run
-	if not stage2_outputs:
-		error_msg = 'The solver has raised an unexpected error during stage 2. ' \
-		            'The collective optimization procedure was unsuccessful. ' \
-		            'Please try making another request, verifying all input data. ' \
-		            'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    # Check if the second stage was successfully run
+    if not stage2_outputs:
+        error_msg = 'The solver has raised an unexpected error during stage 2. ' \
+                    'The collective optimization procedure was unsuccessful. ' \
+                    'Please try making another request, verifying all input data. ' \
+                    'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	non_optimal = stage2_outputs['milp_status'] if stage2_outputs['milp_status'] != 'Optimal' else None
-	if non_optimal:
-		error_msg = f'Stage 2 was not optimally solved: milp_status = {non_optimal}. ' \
-		            'Please try making another request, verifying all input data. ' \
-		            'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    non_optimal = stage2_outputs['milp_status'] if stage2_outputs['milp_status'] != 'Optimal' else None
+    if non_optimal:
+        error_msg = f'Stage 2 was not optimally solved: milp_status = {non_optimal}. ' \
+                    'Please try making another request, verifying all input data. ' \
+                    'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	logger.info('Running a pre-delivery two-stage collective (pool) MILP... DONE!')
+    logger.info('Running a pre-delivery two-stage collective (pool) MILP... DONE!')
 
-	return stage2_outputs, stage1_outputs
+    return stage2_outputs, stage1_outputs
 
 
 def run_pre_two_stage_collective_bilateral_milp(backpack: CollectivePreBackpackS2BilateralDict, for_testing=False) \
-		-> CollectivePreOutputsS2BilateralDict:
-	"""
+        -> CollectivePreOutputsS2BilateralDict:
+    """
 	Use this function to compute the two-step collective MILP for a given renewable energy community (REC)
 	under a p2p market structure, based on bilateral contracts.
 	This function is specific for a pre-delivery timeframe, providing the schedules for controllable assets,
@@ -438,87 +438,87 @@ def run_pre_two_stage_collective_bilateral_milp(backpack: CollectivePreBackpackS
 		"run_pre_single_stage_collective_bilateral_milp" and second, a list with the results from the individual
 		optimization stages, as provided in "run_pre_individual_milp".
 	"""
-	logger.info('Running a pre-delivery two-stage collective (bilateral) MILP...')
+    logger.info('Running a pre-delivery two-stage collective (bilateral) MILP...')
 
-	# Set values for specific run
-	backpack['second_stage'] = True
+    # Set values for specific run
+    backpack['second_stage'] = True
 
-	# Prepare the inputs for the individual optimization stages according to BackpackS1Dict
-	individual_backpacks = []
-	for meter_name, meter_data in backpack['meters'].items():
-		ind_bp = {
-			'btm_storage': meter_data['btm_storage'],
-			'delta_t': backpack['delta_t'],
-			'e_c': meter_data['e_c'],
-			'e_g': meter_data['e_g'],
-			'horizon': backpack['horizon'],
-			'id': meter_name,
-			'l_buy': meter_data['l_buy'],
-			'l_extra': backpack['l_extra'],
-			'l_market_buy': backpack['l_market_buy'],
-			'l_market_sell': backpack['l_market_sell'],
-			'l_sell': meter_data['l_sell'],
-			'max_p': meter_data['max_p']
-		}
-		individual_backpacks.append(ind_bp)
+    # Prepare the inputs for the individual optimization stages according to BackpackS1Dict
+    individual_backpacks = []
+    for meter_name, meter_data in backpack['meters'].items():
+        ind_bp = {
+            'btm_storage': meter_data['btm_storage'],
+            'delta_t': backpack['delta_t'],
+            'e_c': meter_data['e_c'],
+            'e_g': meter_data['e_g'],
+            'horizon': backpack['horizon'],
+            'id': meter_name,
+            'l_buy': meter_data['l_buy'],
+            'l_extra': backpack['l_extra'],
+            'l_market_buy': backpack['l_market_buy'],
+            'l_market_sell': backpack['l_market_sell'],
+            'l_sell': meter_data['l_sell'],
+            'max_p': meter_data['max_p']
+        }
+        individual_backpacks.append(ind_bp)
 
-	# Run in parallel the first stage of optimization for all Meters provided
-	partitions = mp.cpu_count() if not for_testing else 1
-	stage1_outputs = Parallel(n_jobs=partitions, backend='multiprocessing', max_nbytes=None)(
-		delayed(run_pre_individual_milp)(ind_backpack) for ind_backpack in individual_backpacks)
+    # Run in parallel the first stage of optimization for all Meters provided
+    partitions = mp.cpu_count() if not for_testing else 1
+    stage1_outputs = Parallel(n_jobs=partitions, backend='multiprocessing', max_nbytes=None)(
+        delayed(run_pre_individual_milp)(ind_backpack) for ind_backpack in individual_backpacks)
 
-	# Check if all individual stages were successfully run
-	missing_outputs = any(not output for output in stage1_outputs)
-	if missing_outputs:
-		error_msg = 'The solver has raised an unexpected error during stage 1. ' \
-		            'At least one of the individual optimization procedures were unsuccessful. ' \
-		            'Please try making another request, verifying all input data. ' \
-		            'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    # Check if all individual stages were successfully run
+    missing_outputs = any(not output for output in stage1_outputs)
+    if missing_outputs:
+        error_msg = 'The solver has raised an unexpected error during stage 1. ' \
+                    'At least one of the individual optimization procedures were unsuccessful. ' \
+                    'Please try making another request, verifying all input data. ' \
+                    'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	not_optimal = {output['meter_id']: output['milp_status']
-	               for output in stage1_outputs if output['milp_status'] != 'Optimal'}
-	if not_optimal:
-		error_msg = f'The following individual optimization procedures were not optimally solved: {not_optimal}. ' \
-		            f'Please try making another request, verifying all input data. ' \
-		            f'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    not_optimal = {output['meter_id']: output['milp_status']
+                   for output in stage1_outputs if output['milp_status'] != 'Optimal'}
+    if not_optimal:
+        error_msg = f'The following individual optimization procedures were not optimally solved: {not_optimal}. ' \
+                    f'Please try making another request, verifying all input data. ' \
+                    f'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	# Add the individual costs found to the backpack for the collective optimization stage
-	for output in stage1_outputs:
-		meter_id = output['meter_id']
-		c_ind = output['c_ind']
-		backpack['meters'][meter_id]['c_ind'] = c_ind
+    # Add the individual costs found to the backpack for the collective optimization stage
+    for output in stage1_outputs:
+        meter_id = output['meter_id']
+        c_ind = output['c_ind']
+        backpack['meters'][meter_id]['c_ind'] = c_ind
 
-	# Run the second stage of optimization
-	milp = StageTwoMILPBilateral(backpack)
-	milp.solve_milp()
-	stage2_outputs = milp.generate_outputs()
+    # Run the second stage of optimization
+    milp = StageTwoMILPBilateral(backpack)
+    milp.solve_milp()
+    stage2_outputs = milp.generate_outputs()
 
-	# Check if the second stage was successfully run
-	if not stage2_outputs:
-		error_msg = 'The solver has raised an unexpected error during stage 2. ' \
-		            'The collective optimization procedure was unsuccessful. ' \
-		            'Please try making another request, verifying all input data. ' \
-		            'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    # Check if the second stage was successfully run
+    if not stage2_outputs:
+        error_msg = 'The solver has raised an unexpected error during stage 2. ' \
+                    'The collective optimization procedure was unsuccessful. ' \
+                    'Please try making another request, verifying all input data. ' \
+                    'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	non_optimal = stage2_outputs['milp_status'] if stage2_outputs['milp_status'] != 'Optimal' else None
-	if non_optimal:
-		error_msg = f'Stage 2 was not optimally solved: milp_status = {non_optimal}. ' \
-		            'Please try making another request, verifying all input data. ' \
-		            'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    non_optimal = stage2_outputs['milp_status'] if stage2_outputs['milp_status'] != 'Optimal' else None
+    if non_optimal:
+        error_msg = f'Stage 2 was not optimally solved: milp_status = {non_optimal}. ' \
+                    'Please try making another request, verifying all input data. ' \
+                    'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	logger.info('Running a pre-delivery two-stage collective (bilateral) MILP... DONE!')
+    logger.info('Running a pre-delivery two-stage collective (bilateral) MILP... DONE!')
 
-	return stage2_outputs, stage1_outputs
+    return stage2_outputs, stage1_outputs
 
 
 # --- FOR POST-DELIVERY TIMEFRAME --------------------------------------------------------------------------------------
 def run_post_individual_cost(backpack: BackpackIndCostDict) \
-		-> OutputsIndCostDict:
-	"""
+        -> OutputsIndCostDict:
+    """
 	Use this function to compute the individual operation costs (equivalent to a stage 1 MILP) for a given Meter,
 	community member, microgrid or hybrid park.
 	This function is specific for a post-delivery timeframe, and all data is historical.
@@ -550,18 +550,18 @@ def run_post_individual_cost(backpack: BackpackIndCostDict) \
 			power limit at the connection point with the grid, in kW
 	}
 	"""
-	logger.info(f'Calculating the individual post-delivery operation costs ({backpack["id"]})...')
+    logger.info(f'Calculating the individual post-delivery operation costs ({backpack["id"]})...')
 
-	results = calculate_individual_cost(backpack)
+    results = calculate_individual_cost(backpack)
 
-	logger.info(f'Calculating the individual post-delivery operation costs ({backpack["id"]})... DONE!')
+    logger.info(f'Calculating the individual post-delivery operation costs ({backpack["id"]})... DONE!')
 
-	return results
+    return results
 
 
 def run_post_single_stage_collective_pool_milp(backpack: SinglePostBackpackS2PoolDict) \
-		-> SinglePostOutputsS2PoolDict:
-	"""
+        -> SinglePostOutputsS2PoolDict:
+    """
 	Use this function to compute a standalone collective MILP for a given renewable energy community (REC)
 	under a pool market structure.
 	This function is specific for a post-delivery timeframe, and all data is historical.
@@ -623,36 +623,36 @@ def run_post_single_stage_collective_pool_milp(backpack: SinglePostBackpackS2Poo
 		'p_extra_cost2pool': dict of floats with the total power limit violation costs, in €
 	}
 	"""
-	logger.info('Running a post-delivery standalone/second stage collective (pool) MILP...')
+    logger.info('Running a post-delivery standalone/second stage collective (pool) MILP...')
 
-	# Set values for specific run
-	backpack['second_stage'] = False
-	for _, val in backpack['meters'].items():
-		val['c_ind'] = 0.0
-		val['btm_storage'] = {}
+    # Set values for specific run
+    backpack['second_stage'] = False
+    for _, val in backpack['meters'].items():
+        val['c_ind'] = 0.0
+        val['btm_storage'] = {}
 
-	milp = StageTwoMILPPool(backpack)
-	milp.solve_milp()
-	results = milp.generate_outputs()
+    milp = StageTwoMILPPool(backpack)
+    milp.solve_milp()
+    results = milp.generate_outputs()
 
-	# Remove non-necessary outputs
-	del results['e_bat']
-	del results['soc_bat']
-	del results['e_bc']
-	del results['e_bd']
-	del results['delta_bc']
-	del results['c_ind2pool_without_deg']
-	del results['c_ind2pool_without_deg_and_p_extra']
-	del results['deg_cost2pool']
+    # Remove non-necessary outputs
+    del results['e_bat']
+    del results['soc_bat']
+    del results['e_bc']
+    del results['e_bd']
+    del results['delta_bc']
+    del results['c_ind2pool_without_deg']
+    del results['c_ind2pool_without_deg_and_p_extra']
+    del results['deg_cost2pool']
 
-	logger.info('Running a post-delivery standalone/second stage collective (pool) MILP... DONE!')
+    logger.info('Running a post-delivery standalone/second stage collective (pool) MILP... DONE!')
 
-	return results
+    return results
 
 
 def run_post_single_stage_collective_bilateral_milp(backpack: SinglePostBackpackS2BilateralDict) \
-		-> SinglePostOutputsS2BilateralDict:
-	"""
+        -> SinglePostOutputsS2BilateralDict:
+    """
 	Use this function to compute a standalone collective MILP for a given renewable energy community (REC),
 	under a p2p market structure, based on bilateral contracts.
 	This function is specific for a post-delivery timeframe, and all data is historical.
@@ -713,36 +713,36 @@ def run_post_single_stage_collective_bilateral_milp(backpack: SinglePostBackpack
 		'p_extra_cost2bilateral': dict of floats with the total power limit violation costs, in €
 	}
 	"""
-	logger.info('Running a post-delivery standalone/second stage collective (bilateral) MILP...')
+    logger.info('Running a post-delivery standalone/second stage collective (bilateral) MILP...')
 
-	# Set values for specific run
-	backpack['second_stage'] = False
-	for _, val in backpack['meters'].items():
-		val['c_ind'] = 0.0
-		val['btm_storage'] = {}
+    # Set values for specific run
+    backpack['second_stage'] = False
+    for _, val in backpack['meters'].items():
+        val['c_ind'] = 0.0
+        val['btm_storage'] = {}
 
-	milp = StageTwoMILPBilateral(backpack)
-	milp.solve_milp()
-	results = milp.generate_outputs()
+    milp = StageTwoMILPBilateral(backpack)
+    milp.solve_milp()
+    results = milp.generate_outputs()
 
-	# Remove non-necessary outputs
-	del results['e_bat']
-	del results['soc_bat']
-	del results['e_bc']
-	del results['e_bd']
-	del results['delta_bc']
-	del results['c_ind2bilateral_without_deg']
-	del results['c_ind2bilateral_without_deg_and_p_extra']
-	del results['deg_cost2bilateral']
+    # Remove non-necessary outputs
+    del results['e_bat']
+    del results['soc_bat']
+    del results['e_bc']
+    del results['e_bd']
+    del results['delta_bc']
+    del results['c_ind2bilateral_without_deg']
+    del results['c_ind2bilateral_without_deg_and_p_extra']
+    del results['deg_cost2bilateral']
 
-	logger.info('Running a post-delivery standalone/second stage collective (bilateral) MILP... DONE!')
+    logger.info('Running a post-delivery standalone/second stage collective (bilateral) MILP... DONE!')
 
-	return results
+    return results
 
 
 def run_post_two_stage_collective_pool_milp(backpack: CollectivePostBackpackS2PoolDict, for_testing=False) \
-		-> CollectivePostOutputsS2PoolDict:
-	"""
+        -> CollectivePostOutputsS2PoolDict:
+    """
 	Use this function to compute the two-step collective MILP for a given renewable energy community (REC)
 	under a pool market structure.
 	This function is specific for a post-delivery timeframe, and all data is historical.
@@ -756,79 +756,79 @@ def run_post_two_stage_collective_pool_milp(backpack: CollectivePostBackpackS2Po
 		"run_post_single_stage_collective_pool_milp" and second, a list with the results from the individual
 		cost computations, as provided in "run_post_individual_cost".
 	"""
-	logger.info('Running a post-delivery two-stage collective (pool) MILP...')
+    logger.info('Running a post-delivery two-stage collective (pool) MILP...')
 
-	# Set values for specific run
-	backpack['second_stage'] = True
-	for _, val in backpack['meters'].items():
-		val['c_ind'] = 0.0
-		val['btm_storage'] = {}
+    # Set values for specific run
+    backpack['second_stage'] = True
+    for _, val in backpack['meters'].items():
+        val['c_ind'] = 0.0
+        val['btm_storage'] = {}
 
-	# Prepare the inputs for the individual optimization stages according to BackpackS1Dict
-	individual_backpacks = []
-	for meter_name, meter_data in backpack['meters'].items():
-		ind_bp = {
-			'delta_t': backpack['delta_t'],
-			'e_met': [ec - eg for ec, eg in zip(meter_data['e_c'], meter_data['e_g'])],
-			'l_buy': meter_data['l_buy'],
-			'l_extra': backpack['l_extra'],
-			'l_market_buy': backpack['l_market_buy'],
-			'l_market_sell': backpack['l_market_sell'],
-			'l_sell': meter_data['l_sell'],
-			'max_p': meter_data['max_p'],
-			'id': meter_name
-		}
-		individual_backpacks.append(ind_bp)
+    # Prepare the inputs for the individual optimization stages according to BackpackS1Dict
+    individual_backpacks = []
+    for meter_name, meter_data in backpack['meters'].items():
+        ind_bp = {
+            'delta_t': backpack['delta_t'],
+            'e_met': [ec - eg for ec, eg in zip(meter_data['e_c'], meter_data['e_g'])],
+            'l_buy': meter_data['l_buy'],
+            'l_extra': backpack['l_extra'],
+            'l_market_buy': backpack['l_market_buy'],
+            'l_market_sell': backpack['l_market_sell'],
+            'l_sell': meter_data['l_sell'],
+            'max_p': meter_data['max_p'],
+            'id': meter_name
+        }
+        individual_backpacks.append(ind_bp)
 
-	# Run in parallel the first stage of optimization for all Meters provided
-	partitions = mp.cpu_count() if not for_testing else 1
-	stage1_outputs = Parallel(n_jobs=partitions, backend='multiprocessing', max_nbytes=None)(
-		delayed(run_post_individual_cost)(ind_backpack) for ind_backpack in individual_backpacks)
+    # Run in parallel the first stage of optimization for all Meters provided
+    partitions = mp.cpu_count() if not for_testing else 1
+    stage1_outputs = Parallel(n_jobs=partitions, backend='multiprocessing', max_nbytes=None)(
+        delayed(run_post_individual_cost)(ind_backpack) for ind_backpack in individual_backpacks)
 
-	# Add the individual costs found to the backpack for the collective optimization stage
-	for output in stage1_outputs:
-		meter_id = output['meter_id']
-		c_ind = output['c_ind']
-		backpack['meters'][meter_id]['c_ind'] = c_ind
+    # Add the individual costs found to the backpack for the collective optimization stage
+    for output in stage1_outputs:
+        meter_id = output['meter_id']
+        c_ind = output['c_ind']
+        backpack['meters'][meter_id]['c_ind'] = c_ind
 
-	# Run the second stage of optimization
-	milp = StageTwoMILPPool(backpack)
-	milp.solve_milp()
-	stage2_outputs = milp.generate_outputs()
+    # Run the second stage of optimization
+    milp = StageTwoMILPPool(backpack)
+    milp.solve_milp()
+    stage2_outputs = milp.generate_outputs()
 
-	# Check if the second stage was successfully run
-	if not stage2_outputs:
-		error_msg = 'The solver has raised an unexpected error during stage 2. ' \
-		            'The collective optimization procedure was unsuccessful. ' \
-		            'Please try making another request, verifying all input data. ' \
-		            'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    # Check if the second stage was successfully run
+    if not stage2_outputs:
+        error_msg = 'The solver has raised an unexpected error during stage 2. ' \
+                    'The collective optimization procedure was unsuccessful. ' \
+                    'Please try making another request, verifying all input data. ' \
+                    'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	non_optimal = stage2_outputs['milp_status'] if stage2_outputs['milp_status'] != 'Optimal' else None
-	if non_optimal:
-		error_msg = f'Stage 2 was not optimally solved: milp_status = {non_optimal}. ' \
-		            'Please try making another request, verifying all input data. ' \
-		            'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    non_optimal = stage2_outputs['milp_status'] if stage2_outputs['milp_status'] != 'Optimal' else None
+    if non_optimal:
+        error_msg = f'Stage 2 was not optimally solved: milp_status = {non_optimal}. ' \
+                    'Please try making another request, verifying all input data. ' \
+                    'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	# Remove non-necessary outputs
-	del stage2_outputs['e_bat']
-	del stage2_outputs['soc_bat']
-	del stage2_outputs['e_bc']
-	del stage2_outputs['e_bd']
-	del stage2_outputs['delta_bc']
-	del stage2_outputs['c_ind2pool_without_deg']
-	del stage2_outputs['c_ind2pool_without_deg_and_p_extra']
-	del stage2_outputs['deg_cost2pool']
+    # Remove non-necessary outputs
+    del stage2_outputs['e_bat']
+    del stage2_outputs['soc_bat']
+    del stage2_outputs['e_bc']
+    del stage2_outputs['e_bd']
+    del stage2_outputs['delta_bc']
+    del stage2_outputs['c_ind2pool_without_deg']
+    del stage2_outputs['c_ind2pool_without_deg_and_p_extra']
+    del stage2_outputs['deg_cost2pool']
 
-	logger.info('Running a post-delivery two-stage collective (pool) MILP... DONE!')
+    logger.info('Running a post-delivery two-stage collective (pool) MILP... DONE!')
 
-	return stage2_outputs, stage1_outputs
+    return stage2_outputs, stage1_outputs
 
 
 def run_post_two_stage_collective_bilateral_milp(backpack: CollectivePostBackpackS2BilateralDict, for_testing=False) \
-		-> CollectivePostOutputsS2BilateralDict:
-	"""
+        -> CollectivePostOutputsS2BilateralDict:
+    """
 	Use this function to compute the two-step collective MILP for a given renewable energy community (REC)
 	under a p2p market structure, based on bilateral contracts.
 	This function is specific for a post-delivery timeframe, and all data is historical.
@@ -842,71 +842,161 @@ def run_post_two_stage_collective_bilateral_milp(backpack: CollectivePostBackpac
 		"run_post_single_stage_collective_bilateral_milp" and second, a list with the results from the individual
 		cost computations, as provided in "run_post_individual_cost".
 	"""
-	logger.info('Running a post-delivery two-stage collective (bilateral) MILP...')
+    logger.info('Running a post-delivery two-stage collective (bilateral) MILP...')
 
-	# Set values for specific run
-	backpack['second_stage'] = True
-	for _, val in backpack['meters'].items():
-		val['c_ind'] = 0.0
-		val['btm_storage'] = {}
+    # Set values for specific run
+    backpack['second_stage'] = True
+    for _, val in backpack['meters'].items():
+        val['c_ind'] = 0.0
+        val['btm_storage'] = {}
 
-	# Prepare the inputs for the individual optimization stages according to BackpackS1Dict
-	individual_backpacks = []
-	for meter_name, meter_data in backpack['meters'].items():
-		ind_bp = {
-			'delta_t': backpack['delta_t'],
-			'e_met': [ec - eg for ec, eg in zip(meter_data['e_c'], meter_data['e_g'])],
-			'l_buy': meter_data['l_buy'],
-			'l_extra': backpack['l_extra'],
-			'l_market_buy': backpack['l_market_buy'],
-			'l_market_sell': backpack['l_market_sell'],
-			'l_sell': meter_data['l_sell'],
-			'max_p': meter_data['max_p'],
-			'id': meter_name
-		}
-		individual_backpacks.append(ind_bp)
+    # Prepare the inputs for the individual optimization stages according to BackpackS1Dict
+    individual_backpacks = []
+    for meter_name, meter_data in backpack['meters'].items():
+        ind_bp = {
+            'delta_t': backpack['delta_t'],
+            'e_met': [ec - eg for ec, eg in zip(meter_data['e_c'], meter_data['e_g'])],
+            'l_buy': meter_data['l_buy'],
+            'l_extra': backpack['l_extra'],
+            'l_market_buy': backpack['l_market_buy'],
+            'l_market_sell': backpack['l_market_sell'],
+            'l_sell': meter_data['l_sell'],
+            'max_p': meter_data['max_p'],
+            'id': meter_name
+        }
+        individual_backpacks.append(ind_bp)
 
-	# Run in parallel the first stage of optimization for all Meters provided
-	partitions = mp.cpu_count() if not for_testing else 1
-	stage1_outputs = Parallel(n_jobs=partitions, backend='multiprocessing', max_nbytes=None)(
-		delayed(run_post_individual_cost)(ind_backpack) for ind_backpack in individual_backpacks)
+    # Run in parallel the first stage of optimization for all Meters provided
+    partitions = mp.cpu_count() if not for_testing else 1
+    stage1_outputs = Parallel(n_jobs=partitions, backend='multiprocessing', max_nbytes=None)(
+        delayed(run_post_individual_cost)(ind_backpack) for ind_backpack in individual_backpacks)
 
-	# Add the individual costs found to the backpack for the collective optimization stage
-	for output in stage1_outputs:
-		meter_id = output['meter_id']
-		c_ind = output['c_ind']
-		backpack['meters'][meter_id]['c_ind'] = c_ind
+    # Add the individual costs found to the backpack for the collective optimization stage
+    for output in stage1_outputs:
+        meter_id = output['meter_id']
+        c_ind = output['c_ind']
+        backpack['meters'][meter_id]['c_ind'] = c_ind
 
-	# Run the second stage of optimization
-	milp = StageTwoMILPBilateral(backpack)
-	milp.solve_milp()
-	stage2_outputs = milp.generate_outputs()
+    # Run the second stage of optimization
+    milp = StageTwoMILPBilateral(backpack)
+    milp.solve_milp()
+    stage2_outputs = milp.generate_outputs()
 
-	# Check if the second stage was successfully run
-	if not stage2_outputs:
-		error_msg = 'The solver has raised an unexpected error during stage 2. ' \
-		            'The collective optimization procedure was unsuccessful. ' \
-		            'Please try making another request, verifying all input data. ' \
-		            'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    # Check if the second stage was successfully run
+    if not stage2_outputs:
+        error_msg = 'The solver has raised an unexpected error during stage 2. ' \
+                    'The collective optimization procedure was unsuccessful. ' \
+                    'Please try making another request, verifying all input data. ' \
+                    'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	non_optimal = stage2_outputs['milp_status'] if stage2_outputs['milp_status'] != 'Optimal' else None
-	if non_optimal:
-		error_msg = f'Stage 2 was not optimally solved: milp_status = {non_optimal}. ' \
-		            'Please try making another request, verifying all input data. ' \
-		            'If the problem persists, please contact the developers.'
-		raise ValueError(error_msg)
+    non_optimal = stage2_outputs['milp_status'] if stage2_outputs['milp_status'] != 'Optimal' else None
+    if non_optimal:
+        error_msg = f'Stage 2 was not optimally solved: milp_status = {non_optimal}. ' \
+                    'Please try making another request, verifying all input data. ' \
+                    'If the problem persists, please contact the developers.'
+        raise ValueError(error_msg)
 
-	# Remove non-necessary outputs
-	del stage2_outputs['e_bat']
-	del stage2_outputs['soc_bat']
-	del stage2_outputs['e_bc']
-	del stage2_outputs['e_bd']
-	del stage2_outputs['delta_bc']
-	del stage2_outputs['c_ind2bilateral_without_deg']
-	del stage2_outputs['c_ind2bilateral_without_deg_and_p_extra']
-	del stage2_outputs['deg_cost2bilateral']
+    # Remove non-necessary outputs
+    del stage2_outputs['e_bat']
+    del stage2_outputs['soc_bat']
+    del stage2_outputs['e_bc']
+    del stage2_outputs['e_bd']
+    del stage2_outputs['delta_bc']
+    del stage2_outputs['c_ind2bilateral_without_deg']
+    del stage2_outputs['c_ind2bilateral_without_deg_and_p_extra']
+    del stage2_outputs['deg_cost2bilateral']
 
-	logger.info('Running a post-delivery two-stage collective (bilateral) MILP... DONE!')
+    logger.info('Running a post-delivery two-stage collective (bilateral) MILP... DONE!')
 
-	return stage2_outputs, stage1_outputs
+    return stage2_outputs, stage1_outputs
+
+
+if __name__ == '__main__':
+    from rec_op_lem_prices.pricing_mechanisms_functions import vanilla_mmr
+    from rec_op_lem_prices.optimization.structures.I_O_stage_2_bilateral_milp import INPUTS_S2_BILATERAL
+
+    # inputs_pricing = {}
+    # lem_prices = vanilla_mmr(inputs_pricing)
+
+    inputs_milp = {'delta_t': 1.0,
+                   'horizon': 5.0,
+                   'l_extra': 10,
+                   'l_grid': [0.01, 0.01, 0.01, 0.01, 0.01],
+                   'l_lem': [1.5, 1.5, 1.5, 1.5, 1.5],
+                   'l_market_buy': [3.0, 3.0, 3.0, 3.0, 3.0],
+                   'l_market_sell': [0.1, 0.1, 0.1, 0.1, 0.1],
+                   'meters': {
+                       'Meter#1': {
+                           'btm_storage': {
+                               'Storage#1': {
+                                   'degradation_cost': 0.01,
+                                   'e_bn': 1.0,
+                                   'eff_bc': 1.0,
+                                   'eff_bd': 1.0,
+                                   'init_e': 0.0,
+                                   'p_max': 1.0,
+                                   'soc_max': 100.0,
+                                   'soc_min': 0.0}
+                           },
+                           'e_c': [0.0, 0.5, 0.1, 0.3, 0.2],
+                           'e_g': [0.0, 0.2, 0.8, 0.3, 0.0],
+                           'l_buy': [2.1, 2.0, 1.9, 2.0, 2.1],
+                           'l_sell': [0.0, 0.0, 0.2, 0.5, 0.9],
+                           'max_p': 5.0
+                       },
+                       'Meter#2': {
+                           'btm_storage': {
+                               'Storage#2': {
+                                   'degradation_cost': 0.01,
+                                   'e_bn': 1.0,
+                                   'eff_bc': 1.0,
+                                   'eff_bd': 1.0,
+                                   'init_e': 0.0,
+                                   'p_max': 1.0,
+                                   'soc_max': 100.0,
+                                   'soc_min': 0.0}
+                           },
+                           'e_c': [0.1, 0.5, 0.1, 0.3, 0.0],
+                           'e_g': [0.0, 0.4, 0.7, 0.2, 0.0],
+                           'l_buy': [2.2, 2.0, 1.8, 2.1, 2.3],
+                           'l_sell': [0.1, 0.0, 0.0, 0.3, 0.7],
+                           'max_p': 5.0
+                       },
+                       'Meter#3': {
+                           'btm_storage': None,
+                           'e_c': [0.0, 0.2, 0.4, 0.0, 0.1],
+                           'e_g': [0.0, 0.0, 0.0, 0.0, 0.0],
+                           'l_buy': [2.1, 2.1, 2.1, 2.1, 2.1],
+                           'l_sell': [0.0, 0.0, 0.0, 0.0, 0.0],
+                           'max_p': 5.0
+                       },
+                       'Meter#4': {
+                           'btm_storage': None,
+                           'e_c': [0.0, 0.4, 0.5, 0.2, 0.0],
+                           'e_g': [0.0, 0.0, 0.0, 0.0, 0.0],
+                           'l_buy': [2.2, 2.2, 2.2, 2.2, 2.2],
+                           'l_sell': [0.0, 0.0, 0.0, 0.0, 0.0],
+                           'max_p': 5.0
+                       },
+                       'Meter#5': {
+                           'btm_storage': None,
+                           'e_c': [0.1, 0.0, 0.6, 0.3, 0.1],
+                           'e_g': [0.0, 0.0, 0.0, 0.0, 0.0],
+                           'l_buy': [2.0, 2.0, 2.0, 2.0, 2.0],
+                           'l_sell': [0.0, 0.0, 0.0, 0.0, 0.0],
+                           'max_p': 5.0
+                       }
+                   },
+                   'second_stage': False,
+                   # these inputs are used for testing the second stage of the two-stage approach
+                   'strict_pos_coeffs': True,
+                   'total_share_coeffs': False
+                   }
+
+    # inputs_milp = INPUTS_S2_BILATERAL
+    # results = run_pre_two_stage_collective_bilateral_milp(inputs_milp)
+    results = run_pre_two_stage_collective_pool_milp(inputs_milp)
+    test_results = results[0]  # collective results
+    print("obj_value:", test_results['obj_value'])
+    print("c_ind2:", test_results['c_ind2pool'])
