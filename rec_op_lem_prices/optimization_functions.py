@@ -922,68 +922,91 @@ if __name__ == '__main__':
     inputs_milp = {'delta_t': 1.0,
                    'horizon': 5.0,
                    'l_extra': 10,
-                   'l_grid': [0.01, 0.01, 0.01, 0.01, 0.01],
+                   'l_grid': {
+                       'Meter#1': {
+                           'Meter#2': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#3': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#4': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#5': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#6': [0.01, 0.01, 0.01, 0.01, 0.01]
+                       },
+                       'Meter#2': {
+                           'Meter#1': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#3': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#4': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#5': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#6': [0.01, 0.01, 0.01, 0.01, 0.01]
+                       },
+                       'Meter#3': {
+                           'Meter#1': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#2': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#4': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#5': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#6': [0.01, 0.01, 0.01, 0.01, 0.01]
+                       },
+                       'Meter#4': {
+                           'Meter#1': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#2': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#3': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#5': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#6': [0.01, 0.01, 0.01, 0.01, 0.01]
+                       },
+                       'Meter#5': {
+                           'Meter#1': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#2': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#3': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#4': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#6': [0.01, 0.01, 0.01, 0.01, 0.01]
+                       },
+                       'Meter#6': {
+                           'Meter#1': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#2': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#3': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#4': [0.01, 0.01, 0.01, 0.01, 0.01],
+                           'Meter#5': [0.01, 0.01, 0.01, 0.01, 0.01]
+                       }
+                   },
                    'l_lem': [1.5, 1.5, 1.5, 1.5, 1.5],
                    'l_market_buy': [3.0, 3.0, 3.0, 3.0, 3.0],
                    'l_market_sell': [0.1, 0.1, 0.1, 0.1, 0.1],
                    'meters': {
                        'Meter#1': {
-                           'btm_storage': {
-                               'Storage#1': {
-                                   'degradation_cost': 0.01,
-                                   'e_bn': 1.0,
-                                   'eff_bc': 1.0,
-                                   'eff_bd': 1.0,
-                                   'init_e': 0.0,
-                                   'p_max': 1.0,
-                                   'soc_max': 100.0,
-                                   'soc_min': 0.0}
-                           },
-                           'e_c': [0.0, 0.5, 0.1, 0.3, 0.2],
-                           'e_g': [0.0, 0.2, 0.8, 0.3, 0.0],
+                           'btm_storage': None,
+                           'e_c': [0.0, 0.5, 0.2, 0.3, 0.2],
+                           'e_g': [0.0, 0.4, 1.4, 0.4, 0.0],
                            'l_buy': [2.1, 2.0, 1.9, 2.0, 2.1],
                            'l_sell': [0.0, 0.0, 0.2, 0.5, 0.9],
                            'max_p': 5.0
                        },
                        'Meter#2': {
-                           'btm_storage': {
-                               'Storage#2': {
-                                   'degradation_cost': 0.01,
-                                   'e_bn': 1.0,
-                                   'eff_bc': 1.0,
-                                   'eff_bd': 1.0,
-                                   'init_e': 0.0,
-                                   'p_max': 1.0,
-                                   'soc_max': 100.0,
-                                   'soc_min': 0.0}
-                           },
-                           'e_c': [0.1, 0.5, 0.1, 0.3, 0.0],
-                           'e_g': [0.0, 0.4, 0.7, 0.2, 0.0],
-                           'l_buy': [2.2, 2.0, 1.8, 2.1, 2.3],
-                           'l_sell': [0.1, 0.0, 0.0, 0.3, 0.7],
+                           'btm_storage': None,
+                           'e_c': [0.1, 0.3, 0.6, 0.2, 0.1],
+                           'e_g': [0.0, 0.0, 0.0, 0.0, 0.0],
+                           'l_buy': [2.1, 2.1, 2.0, 2.1, 2.2],
+                           'l_sell': [0.0, 0.0, 0.0, 0.0, 0.0],
                            'max_p': 5.0
                        },
                        'Meter#3': {
                            'btm_storage': None,
-                           'e_c': [0.0, 0.2, 0.4, 0.0, 0.1],
-                           'e_g': [0.0, 0.0, 0.0, 0.0, 0.0],
-                           'l_buy': [2.1, 2.1, 2.1, 2.1, 2.1],
-                           'l_sell': [0.0, 0.0, 0.0, 0.0, 0.0],
+                           'e_c': [0.0, 0.2, 0.4, 0.5, 0.2],
+                           'e_g': [0.0, 0.6, 1.1, 0.3, 0.0],
+                           'l_buy': [2.2, 2.0, 1.8, 2.1, 2.2],
+                           'l_sell': [0.1, 0.0, 0.0, 0.3, 0.7],
                            'max_p': 5.0
                        },
                        'Meter#4': {
                            'btm_storage': None,
-                           'e_c': [0.0, 0.4, 0.5, 0.2, 0.0],
+                           'e_c': [0.0, 0.3, 0.5, 0.1, 0.0],
                            'e_g': [0.0, 0.0, 0.0, 0.0, 0.0],
-                           'l_buy': [2.2, 2.2, 2.2, 2.2, 2.2],
+                           'l_buy': [2.2, 2.1, 2.1, 2.1, 2.2],
                            'l_sell': [0.0, 0.0, 0.0, 0.0, 0.0],
                            'max_p': 5.0
                        },
                        'Meter#5': {
                            'btm_storage': None,
-                           'e_c': [0.1, 0.0, 0.6, 0.3, 0.1],
+                           'e_c': [0.0, 0.1, 0.6, 0.2, 0.1],
                            'e_g': [0.0, 0.0, 0.0, 0.0, 0.0],
-                           'l_buy': [2.0, 2.0, 2.0, 2.0, 2.0],
+                           'l_buy': [2.2, 2.2, 2.2, 2.2, 2.2],
                            'l_sell': [0.0, 0.0, 0.0, 0.0, 0.0],
                            'max_p': 5.0
                        }
@@ -991,12 +1014,12 @@ if __name__ == '__main__':
                    'second_stage': False,
                    # these inputs are used for testing the second stage of the two-stage approach
                    'strict_pos_coeffs': True,
-                   'total_share_coeffs': False
                    }
 
     # inputs_milp = INPUTS_S2_BILATERAL
-    # results = run_pre_two_stage_collective_bilateral_milp(inputs_milp)
-    results = run_pre_two_stage_collective_pool_milp(inputs_milp)
+    results = run_pre_two_stage_collective_bilateral_milp(inputs_milp)
+    # results = run_pre_two_stage_collective_pool_milp(inputs_milp)
     test_results = results[0]  # collective results
     print("obj_value:", test_results['obj_value'])
-    print("c_ind2:", test_results['c_ind2pool'])
+    print("c_ind2:", test_results['c_ind2bilateral'])
+    print("epur:", test_results['e_pur_bilateral'])

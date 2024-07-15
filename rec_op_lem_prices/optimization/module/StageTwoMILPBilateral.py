@@ -7,32 +7,32 @@ import os
 import re
 
 from rec_op_lem_prices.configs.configs import (
-	MIPGAP,
-	SOLVER,
-	TIMEOUT
+    MIPGAP,
+    SOLVER,
+    TIMEOUT
 )
 from rec_op_lem_prices.optimization.helpers.milp_helpers import (
-	dict_none_lists,
-	dict_per_param,
-	none_lists,
-	round_up,
-	time_intervals
+    dict_none_lists,
+    dict_per_param,
+    none_lists,
+    round_up,
+    time_intervals
 )
 from rec_op_lem_prices.custom_types.stage_two_milp_bilateral_types import (
-	BackpackS2BilateralDict,
-	OutputsS2BilateralDict
+    BackpackS2BilateralDict,
+    OutputsS2BilateralDict
 )
 from loguru import logger
 from pulp import (
-	LpBinary,
-	LpMinimize,
-	LpProblem,
-	LpStatus,
-	lpSum,
-	LpVariable,
-	GUROBI_CMD,
-	pulp,
-	value
+    LpBinary,
+    LpMinimize,
+    LpProblem,
+    LpStatus,
+    lpSum,
+    LpVariable,
+    GUROBI_CMD,
+    pulp,
+    value
 )
 
 
@@ -62,19 +62,16 @@ class StageTwoMILPBilateral:
         self._l_lem = backpack.get('l_lem')  # price for LEM transactions [€/kWh]
         self._big_m = None  # a very big number [kWh]
         self._l_extra = backpack.get('l_extra')  # (fictitious) very high cost of violating p_meter_max
-        self.energy_exp = {'Meter#1': 1000, 'Meter#2': 800, 'Meter#3': 1200, 'Meter#4': 800, 'Meter#5': 2250}
-        self.annual_income = {'Meter#1': 20000, 'Meter#2': 10000, 'Meter#3': 20000, 'Meter#4': 7800, 'Meter#5': 10500}
-        self.n_ind = {'Meter#1': 1, 'Meter#2': 1, 'Meter#3': 2, 'Meter#4': 1, 'Meter#5': 2}
-        self.n_ind_no_inc = {'Meter#1': 1, 'Meter#2': 2, 'Meter#3': 1, 'Meter#4': 1, 'Meter#5': 3}
+        self.annual_income = {'Meter#1': 134000, 'Meter#2': 49000, 'Meter#3': 102500, 'Meter#4': 13100, 'Meter#5': 35000}
+        self.energy_exp = {'Meter#1': 4550, 'Meter#2': 2200, 'Meter#3': 4300, 'Meter#4': 1500, 'Meter#5': 1650}
+        self.n_ind = {'Meter#1': 2, 'Meter#2': 1, 'Meter#3': 2, 'Meter#4': 2, 'Meter#5': 1}
+        self.n_ind_no_inc = {'Meter#1': 2, 'Meter#2': 0, 'Meter#3': 3, 'Meter#4': 2, 'Meter#5': 0}
         self.epi = {}
+        self.epi_cont = {}
         self.norm_1 = {}
         self.norm_2 = {}
         self.norm_3 = {}
-        self.epi_cont = {}
         self.nvi = {}
-        self.discount = {}
-        self.social_discount = {}
-        self.social_tariff = {'Meter#1': 0, 'Meter#2': 0, 'Meter#3': 0, 'Meter#4': 0, 'Meter#5': 1}
         self.method = 2
         # MILP variables
         self.milp = None  # for storing the MILP formulation
@@ -465,12 +462,8 @@ class StageTwoMILPBilateral:
                         e_bd[n][b][t] * 1 / self._delta_t <= self._p_max[n][b] * (1 - delta_bc[n][b][t]), \
                         'Discharge_rate_limit' + increment
 
-        # Calculate discounts
+        # Calculate indexes
         self.discount_function()
-        self.discount_function_2()
-
-        print('discounts:', self.discount)
-        print('social discounts:', self.social_discount)
 
         for n in self.set_meters:
             increment = f'{n}'
@@ -480,11 +473,10 @@ class StageTwoMILPBilateral:
                 e_sup_retail[n][t] * self._l_buy[n][t] - e_sur_retail[n][t] * self._l_sell[n][t]
                 + e_sup_market[n][t] * self._l_market_buy[t] - e_sur_market[n][t] * self._l_market_sell[t]
                 + lpSum(
-                    e_slc[n][m][t] * self._l_grid[n][m][t] for m in self.sets_other_meters[n]) * self.social_discount[n]
+                    e_slc[n][m][t] * self._l_grid[n][m][t] for m in self.sets_other_meters[n])
                 + p_extra[n][t] * self._l_extra
                 + lpSum(self._deg_cost[n][b] * e_bd[n][b][t] for b in self.sets_btm_storage[n])
-                + (lpSum(e_pur[n][m][t] - e_sale[n][m][t] for m in self.sets_other_meters[n])) * self._l_lem[t] *
-                self.discount[n]
+                + (lpSum(e_pur[n][m][t] - e_sale[n][m][t] for m in self.sets_other_meters[n])) * self._l_lem[t]
                 for t in self.time_series) <= round_up(self._c_ind[n]), 'Stage_1_cost_' + increment
 
         # Write MILP to .lp file
@@ -507,13 +499,11 @@ class StageTwoMILPBilateral:
 
         return
 
-    # Calculate vulnerability and non-vulnerability indexes and vulnerable consumers' LEM discounts
+    # Calculate vulnerability and non-vulnerability indexes
     def discount_function(self):
         ref1 = 0.10
         ref2 = 7000
         ref3 = 150 * 12
-        ni = 0
-        s = 0
         storage = {}
         res = {}
 
@@ -530,11 +520,36 @@ class StageTwoMILPBilateral:
 
         for i in self.set_meters:
             self.epi[i] = int(
-                self.energy_exp[i] / self.annual_income[i] > ref1 and self.annual_income[i] / self.n_ind[i] -
-                ref3 * self.n_ind_no_inc[i] < ref2)
-            self.norm_1[i] = (1 - self.energy_exp[i] / self.annual_income[i])
-            self.norm_2[i] = self.annual_income[i] / self.n_ind[i] * (1 + 0.05 * storage[i] + 0.10 * res[i])
-            self.norm_3[i] = self.n_ind[i] / self.n_ind_no_inc[i]
+                self.energy_exp[i] / self.annual_income[i] > ref1 and (self.annual_income[i] / self.n_ind[i] -
+                                                                       ref3 * self.n_ind_no_inc[i]) < ref2)
+
+            if self.epi[i] == 0:
+                if (1 - self.energy_exp[i] / self.annual_income[i]) > 0.96:
+                    self.norm_1[i] = (1 - self.energy_exp[i] / self.annual_income[i]) * 2
+                else:
+                    self.norm_1[i] = 1 - self.energy_exp[i] / self.annual_income[i] * 3
+                self.norm_2[i] = self.annual_income[i] / self.n_ind[i] * (1 + 0.15 * storage[i] + 0.35 * res[i])
+                if self.n_ind_no_inc[i] != 0:
+                    if self.n_ind[i] != 1:
+                        self.norm_3[i] = self.n_ind[i] / self.n_ind_no_inc[i]
+                    else:
+                        self.norm_3[i] = self.n_ind[i] / self.n_ind_no_inc[i] / 2
+                else:
+                    self.norm_3[i] = 0
+            else:
+                if self.energy_exp[i] / self.annual_income[i] < 0.12:
+                    self.norm_1[i] = self.energy_exp[i] / self.annual_income[i]
+                elif 0.12 <= self.energy_exp[i] / self.annual_income[i] < 0.14:
+                    self.norm_1[i] = self.energy_exp[i] / self.annual_income[i] * 2
+                else:
+                    self.norm_1[i] = self.energy_exp[i] / self.annual_income[i] * 3
+
+                self.norm_2[i] = ref2 - self.annual_income[i] / self.n_ind[i]
+
+                if self.n_ind_no_inc[i] != 0 and self.n_ind[i] == 1:
+                    self.norm_3[i] = self.n_ind_no_inc[i] / self.n_ind[i] * 2
+                else:
+                    self.norm_3[i] = self.n_ind_no_inc[i] / self.n_ind[i]
 
         sum1 = 0
         sum2 = 0
@@ -554,45 +569,22 @@ class StageTwoMILPBilateral:
 
         for n in self.set_meters:
             if self.epi[n] == 1:
-                self.epi_cont[n] = 0.30 * self.norm_1[n] / sum1 + 0.40 * self.norm_2[n] / sum2 + \
-                                   0.30 * self.norm_3[n] / sum3
-                self.nvi[n] = 0
+                if sum3 != 0:
+                    self.epi_cont[n] = 0.20 * self.norm_1[n] / sum1 + 0.60 * self.norm_2[n] / sum2 + \
+                                   0.20 * self.norm_3[n] / sum3
+                    self.nvi[n] = 0
+                else:
+                    self.epi_cont[n] = 0.20 * self.norm_1[n] / sum1 + 0.60 * self.norm_2[n] / sum2
+                    self.nvi[n] = 0
             else:
-                self.nvi[n] = 0.20 * self.norm_1[n] / sum1_nv + 0.60 * self.norm_2[n] / sum2_nv + \
-                              0.20 * self.norm_3[n] / sum3_nv
+                self.nvi[n] = 0.15 * self.norm_1[n] / sum1_nv + 0.70 * self.norm_2[n] / sum2_nv + \
+                              0.15 * self.norm_3[n] / sum3_nv
                 self.epi_cont[n] = 0
 
-        for n in self.set_meters:
-            if self.epi[n] == 1:
-                s += self.epi_cont[n]
-                ni += 1
-
-        if ni != 0:
-            epi_cont_average = s / ni
-
         print('nvi:', self.nvi)
+        print('epi:', self.epi_cont)
 
-        for n in self.set_meters:
-            if self.epi_cont[n] == 0:
-                self.discount[n] = 1
-            else:
-                if self.epi_cont[n] < ((1 - 0.15) * epi_cont_average):
-                    self.discount[n] = 0.80
-                elif self.epi_cont[n] > ((1 + 0.15) * epi_cont_average):
-                    self.discount[n] = 0.90
-                else:
-                    self.discount[n] = 0.85
-
-        return self.discount
-
-    def discount_function_2(self):
-        for n in self.set_meters:
-            if self.social_tariff[n] == 1:
-                self.social_discount[n] = (1 - 0.338)
-            else:
-                self.social_discount[n] = 1
-
-        return self.social_discount
+        return self.epi_cont
 
     def solve_milp(self):
         """
@@ -779,52 +771,35 @@ class StageTwoMILPBilateral:
         outputs['p_extra_cost2bilateral'] = {n: None for n in self.set_meters}
 
         # Calculate individual costs' penalties for non-vulnerable consumers
-        ind = 0
-        penalty = 0
+        total_epur = 0
+        nind = 0
+        ref = 0.04
         for n in self.set_meters:
+
+            if self.epi[n] == 1:
+                nind += 1
+
             epur = []
-            slc = {}
-            discount = []
-            discount2 = []
-            l_grid = {}
-            result1 = 0
-            result2 = 0
-            if self.discount[n] != 1:
-                ind += 1
-                for key in outputs['e_pur_bilateral'][n]:
-                    epur.append(outputs['e_pur_bilateral'][n][key])
+            for key in outputs['e_pur_bilateral'][n]:
+                epur.append(outputs['e_pur_bilateral'][n][key])
+            epur_sum = [sum(elts) for elts in zip(*epur)]
 
-                epur_sum = [sum(elts) for elts in zip(*epur)]
-                for i in range(len(self._l_lem)):
-                    discount.append(1 - self.discount[n])
+            result1 = sum(epur_sum[i] * self._l_lem[i] for i in range(len(epur_sum)))
+            total_epur += result1
 
-                result1 = sum(epur_sum[i] * discount[i] * self._l_lem[i] for i in range(len(discount)))
-
-                if self.social_tariff[n] == 1:
-                    for key in outputs['e_slc_bilateral'][n]:
-                        slc[key] = outputs['e_slc_bilateral'][n][key]
-
-                    for i in range(len(self._l_grid)):
-                        discount2.append(0.338)
-
-                    for i in self.set_meters:
-                        if i != n:
-                            l_grid[i] = self._l_grid[n][i]
-
-                    for key in l_grid:
-                        result2 += sum(slc[key][i] * l_grid[key][i] * discount2[i] for i in range(len(discount2)))
-
-            penalty += (result2 + result1)
-
+        if ref * nind > 1 / 3:
+            penalty = total_epur * 1/3
+        else:
+            penalty = total_epur * ref * nind
         print('penalty:', penalty)
 
         # Calculate individual penalties
         penalty_per_consumer = {}
         ni = 0
+        for n in self.set_meters:
+            if self.epi[n] == 1:
+                ni += 1
         if self.method == 1:
-            for n in self.set_meters:
-                if self.discount[n] != 1:
-                    ni += 1
             for n in self.set_meters:
                 if ni != 0:
                     penalty_per_consumer[n] = penalty / (len(self.set_meters) - ni)
@@ -833,6 +808,8 @@ class StageTwoMILPBilateral:
         elif self.method == 2:
             for n in self.set_meters:
                 penalty_per_consumer[n] = penalty * self.nvi[n]
+
+        print('penalty/consumer:', penalty_per_consumer)
 
         # Calculate the individual costs found on stage 2
         rematchd = {v: k for k, v in matchd.items()}
@@ -856,8 +833,8 @@ class StageTwoMILPBilateral:
                 constraint_sum += var.varValue * coefficient
             constraint_sum += constraint.constant + self._c_ind[n]
 
-            if self.discount[n] != 1:
-                outputs['c_ind2bilateral'][n] = constraint_sum
+            if self.epi[n] == 1:
+                outputs['c_ind2bilateral'][n] = constraint_sum - penalty * self.epi_cont[n]
             else:
                 outputs['c_ind2bilateral'][n] = constraint_sum + penalty_per_consumer[n]
 
@@ -872,11 +849,15 @@ class StageTwoMILPBilateral:
         # Adjust penalty distribution, making sure that the individual costs do not surpass the values from stage 1
         print('c_ind2 b4 adjust:', outputs['c_ind2bilateral'])
         excluded = []
+        vuln = []
         pen = 1
         while pen != 0:
             pen = 0
             for x in self.set_meters:
-                if outputs['c_ind2bilateral'][x] > 1.001 * self._c_ind[x]:
+                if self.epi[x] == 1:
+                    if x not in excluded:
+                        vuln.append(x)
+                if outputs['c_ind2bilateral'][x] > 1.0001 * self._c_ind[x]:
                     if x not in excluded:
                         pen += (outputs['c_ind2bilateral'][x] - self._c_ind[x])
                         excluded.append(x)
@@ -891,16 +872,17 @@ class StageTwoMILPBilateral:
                     sum3_nv += self.norm_3[x]
 
             for x in self.set_meters:
-                if x not in excluded:
+                if x not in (excluded and vuln):
                     if self.method == 1:
-                        outputs['c_ind2bilateral'][x] += pen / (len(self.set_meters) - len(excluded) - ni)
+                        if len(self.set_meters) != (len(excluded) + len(vuln)):
+                            outputs['c_ind2bilateral'][x] += pen / (len(self.set_meters) - len(excluded) - len(vuln))
                     elif self.method == 2:
                         if sum1_nv != 0:
                             self.nvi[x] = 0.20 * self.norm_1[x] / sum1_nv + 0.60 * self.norm_2[x] / sum2_nv + \
-                              0.20 * self.norm_3[x] / sum3_nv
+                                          0.20 * self.norm_3[x] / sum3_nv
                             outputs['c_ind2bilateral'][x] += pen * self.nvi[x]
 
-            if excluded == self.set_meters or excluded == []:
+            if (len(excluded) + len(vuln)) == len(self.set_meters) or excluded == []:
                 break
 
         print('excluded:', excluded)
